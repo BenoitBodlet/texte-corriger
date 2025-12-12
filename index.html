@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chasse aux fautes ! 🔍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #f5576c;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .score-item {
+            text-align: center;
+        }
+        
+        .score-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .score-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .instructions {
+            background: #fff0f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #f5576c;
+        }
+        
+        .text-container {
+            background: #fafafa;
+            padding: 30px;
+            border-radius: 15px;
+            line-height: 2;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        
+        .text-container p {
+            margin-bottom: 15px;
+        }
+        
+        .word {
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        
+        .word:hover {
+            background: #fff3cd;
+        }
+        
+        .error {
+            background: #ffe6e6;
+            border-bottom: 2px solid #ff6b6b;
+            font-weight: 500;
+        }
+        
+        .correct {
+            background: #d4edda;
+            border-bottom: 2px solid #28a745;
+            animation: pulse 0.5s;
+        }
+        
+        .clicked {
+            background: #fff3cd;
+            border-bottom: 2px solid #ffc107;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: slideDown 0.3s;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal h2 {
+            color: #f5576c;
+            margin-bottom: 15px;
+        }
+        
+        .modal input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .modal input:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .feedback.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .feedback.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 5px;
+            font-weight: 600;
+        }
+        
+        .badge-h { background: #ffc107; color: #000; }
+        .badge-a { background: #17a2b8; color: white; }
+        .badge-o { background: #28a745; color: white; }
+        .badge-c { background: #dc3545; color: white; }
+        .badge-s { background: #6f42c1; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Chasse aux fautes !</h1>
+        <p class="subtitle">Une journée extraordinaire au Musée d'histoire naturelle</p>
+        
+        <div class="score-board">
+            <div class="score-item">
+                <span class="score-number" id="found">0</span>
+                <span class="score-label">Fautes trouvées</span>
+            </div>
+            <div class="score-item">
+                <span class="score-number" id="total">65</span>
+                <span class="score-label">Fautes totales</span>
+            </div>
+            <div class="score-item">
+                <span class="score-number" id="percentage">0%</span>
+                <span class="score-label">Réussite</span>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <strong>📝 Instructions :</strong> Clique sur les mots qui contiennent des fautes, puis propose la correction. Attention, ce texte est long et contient 65 fautes ! Prends ton temps et utilise la barre de défilement.
+        </div>
+        
+        <div class="text-container" id="textContainer"></div>
+        
+        <div class="buttons">
+            <button class="btn btn-primary" onclick="showSolution()">🔑 Afficher les solutions</button>
+            <button class="btn btn-secondary" onclick="resetExercise()">🔄 Recommencer</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="correctionModal">
+        <div class="modal-content">
+            <h2>Correction</h2>
+            <p>Mot à corriger : <strong id="wordToCorrect"></strong></p>
+            <input type="text" id="correctionInput" placeholder="Écris la correction ici">
+            <div id="modalFeedback" class="feedback" style="display:none;"></div>
+            <div style="margin-top: 20px;">
+                <button class="btn btn-primary" onclick="checkCorrection()">✓ Valider</button>
+                <button class="btn btn-secondary" onclick="closeModal()">✗ Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const text = [
+            {content: "Jeudi dernier, notre classe ", errors: []},
+            {content: "c'est", correct: "s'est", error: true, category: "H", explanation: "Homophone : s'est (verbe être avec se)"},
+            {content: " rendue au Musée d'histoire naturelle de Genève pour une journée complète de découverte. Nous ", errors: []},
+            {content: "était", correct: "étions", error: true, category: "C", explanation: "Conjugaison : 'nous' au pluriel"},
+            {content: " tous très ", errors: []},
+            {content: "enthousiaste", correct: "enthousiastes", error: true, category: "A", explanation: "Accord : 'tous' implique le pluriel"},
+            {content: " ", errors: []},
+            {content: "a", correct: "à", error: true, category: "H", explanation: "Homophone : à (préposition)"},
+            {content: " l'idée de découvrir les merveilles de ce musée ", errors: []},
+            {content: "renomé", correct: "renommé", error: true, category: "O", explanation: "Orthographe : renommé (avec 2 m)"},
+            {content: ". Notre professeur de biologie, Madame Dupont, nous avait préparé depuis plusieurs semaines en nous parlant des ", errors: []},
+            {content: "dinosaure", correct: "dinosaures", error: true, category: "A", explanation: "Accord : 'des dinosaures' au pluriel"},
+            {content: ", des ", errors: []},
+            {content: "mammifère", correct: "mammifères", error: true, category: "A", explanation: "Accord : 'des mammifères' au pluriel"},
+            {content: " et de l'évolution des ", errors: []},
+            {content: "espèce", correct: "espèces", error: true, category: "A", explanation: "Accord : 'des espèces' au pluriel"},
+            {content: ".", errors: []},
+            
+            {content: "\n\nLe matin, nous sommes ", errors: []},
+            {content: "parti", correct: "partis", error: true, category: "A", explanation: "Accord : participe passé avec être, 'nous' pluriel"},
+            {content: " de l'école ", errors: []},
+            {content: "a", correct: "à", error: true, category: "H", explanation: "Homophone : à (préposition)"},
+            {content: " 8 heures. Le trajet en bus ", errors: []},
+            {content: "à", correct: "a", error: true, category: "H", explanation: "Homophone : a (verbe avoir)"},
+            {content: " duré environ quarante-cinq minutes. Pendant le voyage, mes camarades et moi discutions avec enthousiasme de ce que nous allions voir. Sarah, ma meilleure amie, ", errors: []},
+            {content: "rêvaient", correct: "rêvait", error: true, category: "C", explanation: "Conjugaison : sujet 'Sarah' au singulier"},
+            {content: " de voir les ", errors: []},
+            {content: "papillon", correct: "papillons", error: true, category: "A", explanation: "Accord : 'les papillons' au pluriel"},
+            {content: " exotiques, tandis que Thomas était fasciné par les ", errors: []},
+            {content: "minéro", correct: "minéraux", error: true, category: "O", explanation: "Orthographe : minéraux (pluriel de minéral)"},
+            {content: " et les pierres ", errors: []},
+            {content: "précieuse", correct: "précieuses", error: true, category: "A", explanation: "Accord : 'pierres précieuses' au féminin pluriel"},
+            {content: ".", errors: []},
+            
+            {content: "\n\nDès notre arrivée, un guide ", errors: []},
+            {content: "simpatique", correct: "sympathique", error: true, category: "O", explanation: "Orthographe : sympathique (avec y et th)"},
+            {content: " ", errors: []},
+            {content: "nomé", correct: "nommé", error: true, category: "O", explanation: "Orthographe : nommé (avec 2 m)"},
+            {content: " Monsieur Leroux nous ", errors: []},
+            {content: "à", correct: "a", error: true, category: "H", explanation: "Homophone : a (verbe avoir)"},
+            {content: " ", errors: []},
+            {content: "acceuilli", correct: "accueillis", error: true, category: "O", explanation: "Orthographe : accueillis (sans e après le c)"},
+            {content: " dans le hall d'entrée. Il nous a expliqué que le musée ", errors: []},
+            {content: "contenait", correct: "contient", error: true, category: "C", explanation: "Conjugaison : présent de vérité générale"},
+            {content: " plus de quinze millions de ", errors: []},
+            {content: "spécimen", correct: "spécimens", error: true, category: "A", explanation: "Accord : 'millions de spécimens' au pluriel"},
+            {content: " ", errors: []},
+            {content: "collecté", correct: "collectés", error: true, category: "A", explanation: "Accord : 'spécimens collectés' au masculin pluriel"},
+            {content: " au fil des siècles. Cette information nous ", errors: []},
+            {content: "à", correct: "a", error: true, category: "H", explanation: "Homophone : a (verbe avoir)"},
+            {content: " tous beaucoup ", errors: []},
+            {content: "impressioner", correct: "impressionnés", error: true, category: "C", explanation: "Conjugaison : participe passé avec avoir"},
+            {content: ". Monsieur Leroux nous a ensuite remis des plans du musée et nous a demandé de rester ", errors: []},
+            {content: "groupé", correct: "groupés", error: true, category: "A", explanation: "Accord : accord avec 'nous' pluriel"},
+            {content: " pendant toute la visite.", errors: []},
+            
+            {content: "\n\nNous avons d'abord ", errors: []},
+            {content: "visiter", correct: "visité", error: true, category: "C", explanation: "Conjugaison : participe passé avec avoir"},
+            {content: " la salle des mammifères. Les animaux ", errors: []},
+            {content: "exposé", correct: "exposés", error: true, category: "A", explanation: "Accord : 'animaux exposés' au masculin pluriel"},
+            {content: " ", errors: []},
+            {content: "avait", correct: "avaient", error: true, category: "C", explanation: "Conjugaison : sujet 'animaux' au pluriel"},
+            {content: " l'air si ", errors: []},
+            {content: "réel", correct: "réels", error: true, category: "A", explanation: "Accord : 'réels' au masculin pluriel"},
+            {content: " que ", errors: []},
+            {content: "sa", correct: "ça", error: true, category: "H", explanation: "Homophone : ça (pronom démonstratif)"},
+            {content: " faisait presque peur ! Un immense ours brun se ", errors: []},
+            {content: "dressaient", correct: "dressait", error: true, category: "C", explanation: "Conjugaison : sujet 'ours' au singulier"},
+            {content: " sur ses pattes arrière, montrant ses ", errors: []},
+            {content: "croc", correct: "crocs", error: true, category: "A", explanation: "Accord : 'ses crocs' au pluriel"},
+            {content: " ", errors: []},
+            {content: "acéré", correct: "acérés", error: true, category: "A", explanation: "Accord : 'crocs acérés' au masculin pluriel"},
+            {content: ". Sarah ", errors: []},
+            {content: "à", correct: "a", error: true, category: "H", explanation: "Homophone : a (verbe avoir)"},
+            {content: " même sursauté en voyant un loup empaillé qui nous ", errors: []},
+            {content: "regardaient", correct: "regardait", error: true, category: "C", explanation: "Conjugaison : sujet 'loup' au singulier"},
+            {content: " de ses yeux vitreux. Le guide nous a raconté des ", errors: []},
+            {content: "anecdote", correct: "anecdotes", error: true, category: "A", explanation: "Accord : 'des anecdotes' au pluriel"},
+            {content: " ", errors: []},
+            {content: "fascinante", correct: "fascinantes", error: true, category: "A", explanation: "Accord : 'anecdotes fascinantes' au féminin pluriel"},
+            {content: " sur chaque animal. J'ai été particulièrement marqué par l'histoire du tigre de Sibérie, une espèce aujourd'hui ", errors: []},
+            {content: "menacé", correct: "menacée", error: true, category: "A", explanation: "Accord : 'espèce' est féminin"},
+            {content: " d'extinction.", errors: []},
+            
+            {content: "\n\nEnsuite, nous nous sommes ", errors: []},
+            {content: "diriger", correct: "dirigés", error: true, category: "C", explanation: "Conjugaison : participe passé avec être"},
+            {content: " vers la section des ", errors: []},
+            {content: "dinosaure", correct: "dinosaures", error: true, category: "A", explanation: "Accord : 'des dinosaures' au pluriel"},
+            {content: ", le moment que nous attendions tous avec impatience. Devant nous se ", errors: []},
+            {content: "trouvaient", correct: "trouvait", error: true, category: "C", explanation: "Conjugaison : sujet 'squelette' au singulier (phrase inversée)"},
+            {content: " le squelette complet d'un tyrannosaure rex, mesurant plus de douze mètres de long. Cette créature préhistorique ", errors: []},
+            {content: "vivaient", correct: "vivait", error: true, category: "C", explanation: "Conjugaison : sujet 'créature' au singulier"},
+            {content: " il y a 66 millions d'années. Monsieur Leroux nous a expliqué que les ", errors: []},
+            {content: "paléontologue", correct: "paléontologues", error: true, category: "A", explanation: "Accord : 'les paléontologues' au pluriel"},
+            {content: " avaient mis plusieurs années ", errors: []},
+            {content: "a", correct: "à", error: true, category: "H", explanation: "Homophone : à (préposition)"},
+            {content: " reconstituer ce squelette ", errors: []},
+            {content: "a", correct: "à", error: true, category: "H", explanation: "Homophone : à (préposition)"},
+            {content: " partir de fossiles ", errors: []},
+            {content: "découvert", correct: "découverts", error: true, category: "A", explanation: "Accord : 'fossiles découverts' au masculin pluriel"},
+            {content: " en Amérique du Nord.", errors: []},
+            
+            {content: "\n\nThomas ", errors: []},
+            {content: "à", correct: "a", error: true, category: "H", explanation: "Homophone : a (verbe avoir)"},
+            {content: " posé une question intéressante sur la disparition des dinosaures. Le guide lui a répondu que plusieurs ", errors: []},
+            {content: "théorie", correct: "théories", error: true, category: "A", explanation: "Accord : 'plusieurs théories' au pluriel"},
+            {content: " ", errors: []},
+            {content: "scientifique", correct: "scientifiques", error: true, category: "A", explanation: "Accord : 'théories scientifiques' au féminin pluriel"},
+            {content: " ", errors: []},
+            {content: "existaient", correct: "existent", error: true, category: "C", explanation: "Conjugaison : présent de vérité générale"},
+            {content: ", mais que la plus ", errors: []},
+            {content: "accepté", correct: "acceptée", error: true, category: "A", explanation: "Accord : 'théorie' est féminin"},
+            {content: " était celle de l'impact d'un astéroïde gigantesque. Nous avons tous pris beaucoup de ", errors: []},
+            {content: "photo", correct: "photos", error: true, category: "A", explanation: "Accord : 'beaucoup de photos' au pluriel"},
+            {content: " devant le tyrannosaure. J'ai même fait un selfie avec Sarah et Thomas, avec le squelette en arrière-plan.", errors: []},
+            
+            {content: "\n\nÀ midi, nous nous sommes ", errors: []},
+            {content: "installé", correct: "installés", error: true, category: "A", explanation: "Accord : participe passé avec être, 'nous' pluriel"},
+            {content: " dans la cafétéria du musée pour ", errors: []},
+            {content: "déjeuné", correct: "déjeuner", error: true, category: "O", explanation: "Orthographe : infinitif 'déjeuner'"},
+            {content: ". Madame Dupont nous avait donné des sandwichs et des fruits. Pendant le repas, nous avons partagé nos impressions sur la matinée. Tout le monde était enchanté par cette visite. Sarah nous a même ", errors: []},
+            {content: "raconter", correct: "raconté", error: true, category: "C", explanation: "Conjugaison : participe passé avec avoir"},
+            {content: " qu'elle aimerait devenir paléontologue plus tard. Cette idée nous ", errors: []},
+            {content: "à", correct: "a", error: true, category: "H", explanation: "Homophone : a (verbe avoir)"},
+            {content: " tous ", errors: []},
+            {content: "beaucoup plus", correct: "beaucoup plu", error: true, category: "H", explanation: "Homophone : plu (participe passé de plaire)"},
+            {content: ".", errors: []},
+            
+            {content: "\n\nL'après-midi, nous avons ", errors: []},
+            {content: "explorer", correct: "exploré", error: true, category: "C", explanation: "Conjugaison : participe passé avec avoir"},
+            {content: " la section ", errors: []},
+            {content: "consacré", correct: "consacrée", error: true, category: "A", explanation: "Accord : 'section' est féminin"},
+            {content: " aux ", errors: []},
+            {content: "minéro", correct: "minéraux", error: true, category: "O", explanation: "Orthographe : minéraux (pluriel de minéral)"},
+            {content: " et aux pierres ", errors: []},
+            {content: "précieuse", correct: "précieuses", error: true, category: "A", explanation: "Accord : 'pierres précieuses' au féminin pluriel"},
+            {content: ". Les vitrines contenaient des cristaux de toutes les couleurs : des ", errors: []},
+            {content: "améthyste", correct: "améthystes", error: true, category: "A", explanation: "Accord : 'des améthystes' au pluriel"},
+            {content: " ", errors: []},
+            {content: "violette", correct: "violettes", error: true, category: "A", explanation: "Accord : 'améthystes violettes' au féminin pluriel"},
+            {content: ", des émeraudes ", errors: []},
+            {content: "verte", correct: "vertes", error: true, category: "A", explanation: "Accord : 'émeraudes vertes' au féminin pluriel"},
+            {content: ", et même un énorme diamant brut. Thomas était au comble du bonheur et ", errors: []},
+            {content: "posaient", correct: "posait", error: true, category: "C", explanation: "Conjugaison : sujet 'Thomas' au singulier"},
+            {content: " des questions ", errors: []},
+            {content: "passionante", correct: "passionnantes", error: true, category: "O", explanation: "Orthographe : passionnantes (avec 2 n + accord pluriel)"},
+            {content: " sur la formation de ces pierres. Le guide lui a expliqué que certains ", errors: []},
+            {content: "minéro", correct: "minéraux", error: true, category: "O", explanation: "Orthographe : minéraux (pluriel de minéral)"},
+            {content: " mettaient des millions d'années ", errors: []},
+            {content: "a", correct: "à", error: true, category: "H", explanation: "Homophone : à (préposition)"},
+            {content: " se former dans les profondeurs de la Terre.", errors: []},
+            
+            {content: "\n\nAvant de repartir, nous sommes ", errors: []},
+            {content: "passé", correct: "passés", error: true, category: "A", explanation: "Accord : participe passé avec être, 'nous' pluriel"},
+            {content: " par la boutique du musée. L'ambiance y était joyeuse et ", errors: []},
+            {content: "animé", correct: "animée", error: true, category: "A", explanation: "Accord : 'ambiance' est féminin"},
+            {content: ". Les ", errors: []},
+            {content: "étagère", correct: "étagères", error: true, category: "A", explanation: "Accord : 'les étagères' au pluriel"},
+            {content: " ", errors: []},
+            {content: "était", correct: "étaient", error: true, category: "C", explanation: "Conjugaison : sujet 'étagères' au pluriel"},
+            {content: " ", errors: []},
+            {content: "rempli", correct: "remplies", error: true, category: "A", explanation: "Accord : 'étagères remplies' au féminin pluriel"},
+            {content: " de livres ", errors: []},
+            {content: "scientifique", correct: "scientifiques", error: true, category: "A", explanation: "Accord : 'livres scientifiques' au masculin pluriel"},
+            {content: ", de cartes postales, de peluches représentant des animaux et de maquettes de ", errors: []},
+            {content: "dinosaure", correct: "dinosaures", error: true, category: "A", explanation: "Accord : 'maquettes de dinosaures' au pluriel"},
+            {content: ". J'ai acheté un petit fossile d'ammonite comme souvenir. Sarah ", errors: []},
+            {content: "à", correct: "a", error: true, category: "H", explanation: "Homophone : a (verbe avoir)"},
+            {content: " ", errors: []},
+            {content: "choisit", correct: "choisi", error: true, category: "C", explanation: "Conjugaison : participe passé avec avoir (passé composé)"},
+            {content: " un livre sur les papillons, et Thomas est reparti avec une magnifique géode d'améthyste.", errors: []},
+            
+            {content: "\n\nSur le chemin du retour, nous ", errors: []},
+            {content: "était", correct: "étions", error: true, category: "C", explanation: "Conjugaison : sujet 'nous' au pluriel"},
+            {content: " tous un peu ", errors: []},
+            {content: "fatigué", correct: "fatigués", error: true, category: "A", explanation: "Accord : 'nous tous fatigués' au masculin pluriel"},
+            {content: " mais heureux. Cette sortie ", errors: []},
+            {content: "à", correct: "a", error: true, category: "H", explanation: "Homophone : a (verbe avoir)"},
+            {content: " été une expérience inoubliable qui nous ", errors: []},
+            {content: "à", correct: "a", error: true, category: "H", explanation: "Homophone : a (verbe avoir)"},
+            {content: " permis d'apprendre énormément de choses tout en nous amusant. Madame Dupont nous a demandé d'écrire un compte-rendu de cette visite pour le cours de la semaine prochaine. Je suis certain que tout le monde ", errors: []},
+            {content: "à", correct: "a", error: true, category: "H", explanation: "Homophone : a (verbe avoir)"},
+            {content: " des tas de choses ", errors: []},
+            {content: "intéressante", correct: "intéressantes", error: true, category: "A", explanation: "Accord : 'choses intéressantes' au féminin pluriel"},
+            {content: " ", errors: []},
+            {content: "a", correct: "à", error: true, category: "H", explanation: "Homophone : à (préposition)"},
+            {content: " raconter !", errors: []}
+        ];
+
+        let foundErrors = 0;
+        let currentWord = null;
+        let clickedWords = new Set();
+
+        function renderText() {
+            const container = document.getElementById('textContainer');
+            container.innerHTML = '';
+            
+            text.forEach((segment, index) => {
+                if (segment.error) {
+                    const span = document.createElement('span');
+                    span.className = 'word error';
+                    span.textContent = segment.content;
+                    span.onclick = () => openModal(index);
+                    span.id = 'word-' + index;
+                    container.appendChild(span);
+                } else {
+                    container.appendChild(document.createTextNode(segment.content));
+                }
+            });
+        }
+
+        function openModal(index) {
+            currentWord = index;
+            const word = text[index];
+            document.getElementById('wordToCorrect').textContent = word.content;
+            document.getElementById('correctionInput').value = '';
+            document.getElementById('modalFeedback').style.display = 'none';
+            document.getElementById('correctionModal').style.display = 'flex';
+            document.getElementById('correctionInput').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('correctionModal').style.display = 'none';
+            currentWord = null;
+        }
+
+        function checkCorrection() {
+            const input = document.getElementById('correctionInput').value.trim();
+            const word = text[currentWord];
+            const feedback = document.getElementById('modalFeedback');
+            
+            if (input.toLowerCase() === word.correct.toLowerCase()) {
+                feedback.className = 'feedback success';
+                feedback.innerHTML = `✓ Bravo ! <span class="category-badge badge-${word.category.toLowerCase()}">${getCategoryName(word.category)}</span><br>${word.explanation}`;
+                feedback.style.display = 'block';
+                
+                if (!clickedWords.has(currentWord)) {
+                    clickedWords.add(currentWord);
+                    foundErrors++;
+                    updateScore();
+                }
+                
+                setTimeout(() => {
+                    const wordElement = document.getElementById('word-' + currentWord);
+                    wordElement.className = 'word correct';
+                    wordElement.onclick = null;
+                    closeModal();
+                }, 2000);
+            } else {
+                feedback.className = 'feedback error';
+                feedback.innerHTML = `✗ Pas tout à fait... Réessaie !`;
+                feedback.style.display = 'block';
+            }
+        }
+
+        function getCategoryName(code) {
+            const categories = {
+                'H': 'Homophone',
+                'A': 'Accord',
+                'O': 'Orthographe',
+                'C': 'Conjugaison',
+                'S': 'Syntaxe'
+            };
+            return categories[code] || '';
+        }
+
+        function updateScore() {
+            document.getElementById('found').textContent = foundErrors;
+            const percentage = Math.round((foundErrors / 65) * 100);
+            document.getElementById('percentage').textContent = percentage + '%';
+        }
+
+        function showSolution() {
+            text.forEach((segment, index) => {
+                if (segment.error) {
+                    const wordElement = document.getElementById('word-' + index);
+                    if (wordElement) {
+                        wordElement.className = 'word correct';
+                        wordElement.onclick = null;
+                        wordElement.title = `${segment.content} → ${segment.correct}\n${segment.explanation}`;
+                    }
+                    if (!clickedWords.has(index)) {
+                        clickedWords.add(index);
+                    }
+                }
+            });
+            foundErrors = 65;
+            updateScore();
+        }
+
+        function resetExercice() {
+            foundErrors = 0;
+            clickedWords.clear();
+            updateScore();
+            renderText();
+        }
+
+        document.getElementById('correctionInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkCorrection();
+            }
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('correctionModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        renderText();
+    </script>
+</body>
+</html>
