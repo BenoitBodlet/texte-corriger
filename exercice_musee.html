@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chasse aux fautes ! 🔍</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: #f5576c;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+        
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            color: white;
+        }
+        
+        .score-item {
+            text-align: center;
+        }
+        
+        .score-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .score-label {
+            font-size: 0.9em;
+            opacity: 0.9;
+        }
+        
+        .instructions {
+            background: #fff0f5;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #f5576c;
+        }
+        
+        .text-container {
+            background: #fafafa;
+            padding: 30px;
+            border-radius: 15px;
+            line-height: 2;
+            font-size: 1.1em;
+            margin-bottom: 20px;
+        }
+        
+        .text-container p {
+            margin-bottom: 15px;
+        }
+        
+        .word {
+            cursor: pointer;
+            padding: 2px 4px;
+            border-radius: 3px;
+            transition: all 0.3s;
+        }
+        
+        .word:hover {
+            background: #fff3cd;
+        }
+        
+        .error {
+            background: #ffe6e6;
+            border-bottom: 2px solid #ff6b6b;
+            font-weight: 500;
+        }
+        
+        .correct {
+            background: #d4edda;
+            border-bottom: 2px solid #28a745;
+            animation: pulse 0.5s;
+        }
+        
+        .clicked {
+            background: #fff3cd;
+            border-bottom: 2px solid #ffc107;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            animation: slideDown 0.3s;
+        }
+        
+        @keyframes slideDown {
+            from { transform: translateY(-100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal h2 {
+            color: #f5576c;
+            margin-bottom: 15px;
+        }
+        
+        .modal input {
+            width: 100%;
+            padding: 12px;
+            font-size: 1.1em;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+        }
+        
+        .modal input:focus {
+            outline: none;
+            border-color: #f5576c;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            margin: 5px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+        
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        
+        .buttons {
+            text-align: center;
+            margin-top: 20px;
+        }
+        
+        .feedback {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .feedback.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .feedback.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        
+        .category-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 5px;
+            font-weight: 600;
+        }
+        
+        .badge-h { background: #ffc107; color: #000; }
+        .badge-a { background: #17a2b8; color: white; }
+        .badge-o { background: #28a745; color: white; }
+        .badge-c { background: #dc3545; color: white; }
+        .badge-s { background: #6f42c1; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Chasse aux fautes !</h1>
+        <p class="subtitle">Une visite au Musée d'histoire naturelle</p>
+        
+        <div class="score-board">
+            <div class="score-item">
+                <span class="score-number" id="found">0</span>
+                <span class="score-label">Fautes trouvées</span>
+            </div>
+            <div class="score-item">
+                <span class="score-number" id="total">22</span>
+                <span class="score-label">Fautes totales</span>
+            </div>
+            <div class="score-item">
+                <span class="score-number" id="percentage">0%</span>
+                <span class="score-label">Réussite</span>
+            </div>
+        </div>
+        
+        <div class="instructions">
+            <strong>📝 Instructions :</strong> Clique sur les mots qui contiennent des fautes, puis propose la correction. Les fautes peuvent être des homophones, des accords, de l'orthographe lexicale, de la conjugaison ou de la syntaxe.
+        </div>
+        
+        <div class="text-container" id="textContainer"></div>
+        
+        <div class="buttons">
+            <button class="btn btn-primary" onclick="showSolution()">🔑 Afficher les solutions</button>
+            <button class="btn btn-secondary" onclick="resetExercise()">🔄 Recommencer</button>
+        </div>
+    </div>
+    
+    <div class="modal" id="correctionModal">
+        <div class="modal-content">
+            <h2>Correction</h2>
+            <p>Mot à corriger : <strong id="wordToCorrect"></strong></p>
+            <input type="text" id="correctionInput" placeholder="Écris la correction ici">
+            <div id="modalFeedback" class="feedback" style="display:none;"></div>
+            <div style="margin-top: 20px;">
+                <button class="btn btn-primary" onclick="checkCorrection()">✓ Valider</button>
+                <button class="btn btn-secondary" onclick="closeModal()">✗ Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const text = [
+            {
+                content: "Jeudi dernier, notre classe ",
+                errors: []
+            },
+            {
+                content: "c'est",
+                correct: "s'est",
+                error: true,
+                category: "H",
+                explanation: "Homophone : s'est (verbe être avec se)"
+            },
+            {
+                content: " rendue au Musée d'histoire naturelle de Genève. Nous ",
+                errors: []
+            },
+            {
+                content: "était",
+                correct: "étions",
+                error: true,
+                category: "C",
+                explanation: "Conjugaison : le sujet 'nous' au pluriel"
+            },
+            {
+                content: " tous très ",
+                errors: []
+            },
+            {
+                content: "enthousiaste",
+                correct: "enthousiastes",
+                error: true,
+                category: "A",
+                explanation: "Accord : 'tous' implique le pluriel"
+            },
+            {
+                content: " ",
+                errors: []
+            },
+            {
+                content: "a",
+                correct: "à",
+                error: true,
+                category: "H",
+                explanation: "Homophone : à (préposition)"
+            },
+            {
+                content: " l'idée de découvrir les ",
+                errors: []
+            },
+            {
+                content: "dinosaure",
+                correct: "dinosaures",
+                error: true,
+                category: "A",
+                explanation: "Accord : 'les dinosaures' au pluriel"
+            },
+            {
+                content: " et les animaux ",
+                errors: []
+            },
+            {
+                content: "naturalisé",
+                correct: "naturalisés",
+                error: true,
+                category: "A",
+                explanation: "Accord : 'animaux' est masculin pluriel"
+            },
+            {
+                content: ".",
+                errors: []
+            },
+            {
+                content: "\n\nDès notre arrivée, un guide ",
+                errors: []
+            },
+            {
+                content: "simpatique",
+                correct: "sympathique",
+                error: true,
+                category: "O",
+                explanation: "Orthographe lexicale : sympathique (avec y et th)"
+            },
+            {
+                content: " nous ",
+                errors: []
+            },
+            {
+                content: "à",
+                correct: "a",
+                error: true,
+                category: "H",
+                explanation: "Homophone : a (verbe avoir)"
+            },
+            {
+                content: " ",
+                errors: []
+            },
+            {
+                content: "acceuilli",
+                correct: "accueillis",
+                error: true,
+                category: "O",
+                explanation: "Orthographe : accueillis (sans e après le c)"
+            },
+            {
+                content: " dans le hall d'entrée. Il nous a expliqué que le musée ",
+                errors: []
+            },
+            {
+                content: "contenait",
+                correct: "contient",
+                error: true,
+                category: "C",
+                explanation: "Conjugaison : présent de vérité générale"
+            },
+            {
+                content: " plus de quinze millions de ",
+                errors: []
+            },
+            {
+                content: "spécimen",
+                correct: "spécimens",
+                error: true,
+                category: "A",
+                explanation: "Accord : 'millions de spécimens' au pluriel"
+            },
+            {
+                content: ". Cette information nous ",
+                errors: []
+            },
+            {
+                content: "à",
+                correct: "a",
+                error: true,
+                category: "H",
+                explanation: "Homophone : a (verbe avoir)"
+            },
+            {
+                content: " beaucoup impressionné.",
+                errors: []
+            },
+            {
+                content: "\n\nNous avons ensuite ",
+                errors: []
+            },
+            {
+                content: "visiter",
+                correct: "visité",
+                error: true,
+                category: "C",
+                explanation: "Conjugaison : participe passé avec avoir"
+            },
+            {
+                content: " la salle des mammifères. Les ",
+                errors: []
+            },
+            {
+                content: "animaux",
+                correct: "animaux",
+                error: false
+            },
+            {
+                content: " ",
+                errors: []
+            },
+            {
+                content: "exposé",
+                correct: "exposés",
+                error: true,
+                category: "A",
+                explanation: "Accord : 'animaux exposés' au masculin pluriel"
+            },
+            {
+                content: " ",
+                errors: []
+            },
+            {
+                content: "avait",
+                correct: "avaient",
+                error: true,
+                category: "C",
+                explanation: "Conjugaison : sujet 'animaux' au pluriel"
+            },
+            {
+                content: " l'air si réels que ",
+                errors: []
+            },
+            {
+                content: "sa",
+                correct: "ça",
+                error: true,
+                category: "H",
+                explanation: "Homophone : ça (pronom démonstratif)"
+            },
+            {
+                content: " faisait presque peur ! Ma camarade ",
+                errors: []
+            },
+            {
+                content: "Sarah",
+                correct: "Sarah",
+                error: false
+            },
+            {
+                content: " ",
+                errors: []
+            },
+            {
+                content: "à",
+                correct: "a",
+                error: true,
+                category: "H",
+                explanation: "Homophone : a (verbe avoir)"
+            },
+            {
+                content: " même ",
+                errors: []
+            },
+            {
+                content: "sursauté",
+                correct: "sursauté",
+                error: false
+            },
+            {
+                content: " en voyant un loup empaillé qui la ",
+                errors: []
+            },
+            {
+                content: "regardaient",
+                correct: "regardait",
+                error: true,
+                category: "C",
+                explanation: "Conjugaison : sujet 'loup' au singulier"
+            },
+            {
+                content: " de ses yeux vitreux.",
+                errors: []
+            },
+            {
+                content: "\n\nLe moment le plus ",
+                errors: []
+            },
+            {
+                content: "fascinant",
+                correct: "fascinant",
+                error: false
+            },
+            {
+                content: " fut la découverte du squelette d'un ",
+                errors: []
+            },
+            {
+                content: "tyrannosaure",
+                correct: "tyrannosaure",
+                error: false
+            },
+            {
+                content: ". Le guide nous a raconté que cet animal ",
+                errors: []
+            },
+            {
+                content: "vivaient",
+                correct: "vivait",
+                error: true,
+                category: "C",
+                explanation: "Conjugaison : sujet 'animal' au singulier"
+            },
+            {
+                content: " il y a 66 millions d'années. Nous avons ",
+                errors: []
+            },
+            {
+                content: "pris",
+                correct: "pris",
+                error: false
+            },
+            {
+                content: " beaucoup de ",
+                errors: []
+            },
+            {
+                content: "photo",
+                correct: "photos",
+                error: true,
+                category: "A",
+                explanation: "Accord : 'beaucoup de photos' au pluriel"
+            },
+            {
+                content: " et ",
+                errors: []
+            },
+            {
+                content: "poser",
+                correct: "posé",
+                error: true,
+                category: "C",
+                explanation: "Conjugaison : participe passé avec avoir"
+            },
+            {
+                content: " des questions ",
+                errors: []
+            },
+            {
+                content: "passionante",
+                correct: "passionnantes",
+                error: true,
+                category: "O",
+                explanation: "Orthographe : passionnantes (avec 2 n + accord pluriel)"
+            },
+            {
+                content: ".",
+                errors: []
+            },
+            {
+                content: "\n\nAvant de repartir, nous sommes ",
+                errors: []
+            },
+            {
+                content: "passé",
+                correct: "passés",
+                error: true,
+                category: "A",
+                explanation: "Accord : participe passé avec être, 'nous' pluriel"
+            },
+            {
+                content: " par la boutique du musée. Certains élèves ont acheté des cartes postales ",
+                errors: []
+            },
+            {
+                content: "ou",
+                correct: "ou",
+                error: false
+            },
+            {
+                content: " des ",
+                errors: []
+            },
+            {
+                content: "petit",
+                correct: "petits",
+                error: true,
+                category: "A",
+                explanation: "Accord : 'petits objets' au masculin pluriel"
+            },
+            {
+                content: " objets souvenirs. Cette sortie ",
+                errors: []
+            },
+            {
+                content: "à",
+                correct: "a",
+                error: true,
+                category: "H",
+                explanation: "Homophone : a (verbe avoir)"
+            },
+            {
+                content: " été une expérience ",
+                errors: []
+            },
+            {
+                content: "inoubliable",
+                correct: "inoubliable",
+                error: false
+            },
+            {
+                content: " qui nous a tous ",
+                errors: []
+            },
+            {
+                content: "beaucoup plus",
+                correct: "beaucoup plu",
+                error: true,
+                category: "H",
+                explanation: "Homophone : plu (participe passé de plaire)"
+            },
+            {
+                content: ".",
+                errors: []
+            }
+        ];
+
+        let foundErrors = 0;
+        let currentWord = null;
+        let clickedWords = new Set();
+
+        function renderText() {
+            const container = document.getElementById('textContainer');
+            container.innerHTML = '';
+            
+            text.forEach((segment, index) => {
+                if (segment.error) {
+                    const span = document.createElement('span');
+                    span.className = 'word error';
+                    span.textContent = segment.content;
+                    span.onclick = () => openModal(index);
+                    span.id = 'word-' + index;
+                    container.appendChild(span);
+                } else {
+                    container.appendChild(document.createTextNode(segment.content));
+                }
+            });
+        }
+
+        function openModal(index) {
+            currentWord = index;
+            const word = text[index];
+            document.getElementById('wordToCorrect').textContent = word.content;
+            document.getElementById('correctionInput').value = '';
+            document.getElementById('modalFeedback').style.display = 'none';
+            document.getElementById('correctionModal').style.display = 'flex';
+            document.getElementById('correctionInput').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('correctionModal').style.display = 'none';
+            currentWord = null;
+        }
+
+        function checkCorrection() {
+            const input = document.getElementById('correctionInput').value.trim();
+            const word = text[currentWord];
+            const feedback = document.getElementById('modalFeedback');
+            
+            if (input.toLowerCase() === word.correct.toLowerCase()) {
+                feedback.className = 'feedback success';
+                feedback.innerHTML = `✓ Bravo ! <span class="category-badge badge-${word.category.toLowerCase()}">${getCategoryName(word.category)}</span><br>${word.explanation}`;
+                feedback.style.display = 'block';
+                
+                if (!clickedWords.has(currentWord)) {
+                    clickedWords.add(currentWord);
+                    foundErrors++;
+                    updateScore();
+                }
+                
+                setTimeout(() => {
+                    const wordElement = document.getElementById('word-' + currentWord);
+                    wordElement.className = 'word correct';
+                    wordElement.onclick = null;
+                    closeModal();
+                }, 2000);
+            } else {
+                feedback.className = 'feedback error';
+                feedback.innerHTML = `✗ Pas tout à fait... Réessaie !`;
+                feedback.style.display = 'block';
+            }
+        }
+
+        function getCategoryName(code) {
+            const categories = {
+                'H': 'Homophone',
+                'A': 'Accord',
+                'O': 'Orthographe',
+                'C': 'Conjugaison',
+                'S': 'Syntaxe'
+            };
+            return categories[code] || '';
+        }
+
+        function updateScore() {
+            document.getElementById('found').textContent = foundErrors;
+            const percentage = Math.round((foundErrors / 22) * 100);
+            document.getElementById('percentage').textContent = percentage + '%';
+        }
+
+        function showSolution() {
+            text.forEach((segment, index) => {
+                if (segment.error) {
+                    const wordElement = document.getElementById('word-' + index);
+                    if (wordElement) {
+                        wordElement.className = 'word correct';
+                        wordElement.onclick = null;
+                        wordElement.title = `${segment.content} → ${segment.correct}\n${segment.explanation}`;
+                    }
+                    if (!clickedWords.has(index)) {
+                        clickedWords.add(index);
+                    }
+                }
+            });
+            foundErrors = 22;
+            updateScore();
+        }
+
+        function resetExercise() {
+            foundErrors = 0;
+            clickedWords.clear();
+            updateScore();
+            renderText();
+        }
+
+        document.getElementById('correctionInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                checkCorrection();
+            }
+        });
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('correctionModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+
+        renderText();
+    </script>
+</body>
+</html>
